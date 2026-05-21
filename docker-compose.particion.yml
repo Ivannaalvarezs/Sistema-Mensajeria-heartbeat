@@ -1,0 +1,131 @@
+##############################################################################
+# Sección 6: Topología con partición de red
+#
+#   red-norte:  nodo1, nodo2, nodo-puente
+#   red-sur:    nodo3, nodo4, nodo-puente
+#
+#   nodo-puente pertenece a AMBAS redes → puede hablar con todos.
+#   nodo1 ↔ nodo4 NO pueden comunicarse directamente.
+##############################################################################
+
+services:
+
+  nodo1:
+    build: .
+    container_name: nodo1
+    environment:
+      - NODE_NAME=nodo1
+      - TCP_PORT=5001
+      - UDP_PORT=5002
+      - API_PORT=5003
+      - HB_PORT=5004
+      - PEERS=nodo2:5001,nodo-puente:5001
+    ports:
+      - "5001:5001"
+      - "5002:5002/udp"
+      - "5003:5003"
+      - "5004:5004/udp"
+    volumes:
+      - datos-nodo1:/app/data
+    networks:
+      - red-norte
+    restart: unless-stopped
+
+  nodo2:
+    build: .
+    container_name: nodo2
+    environment:
+      - NODE_NAME=nodo2
+      - TCP_PORT=5001
+      - UDP_PORT=5002
+      - API_PORT=5003
+      - HB_PORT=5004
+      - PEERS=nodo1:5001,nodo-puente:5001
+    ports:
+      - "6001:5001"
+      - "6002:5002/udp"
+      - "6003:5003"
+      - "6004:5004/udp"
+    volumes:
+      - datos-nodo2:/app/data
+    networks:
+      - red-norte
+    restart: unless-stopped
+
+  nodo3:
+    build: .
+    container_name: nodo3
+    environment:
+      - NODE_NAME=nodo3
+      - TCP_PORT=5001
+      - UDP_PORT=5002
+      - API_PORT=5003
+      - HB_PORT=5004
+      - PEERS=nodo4:5001,nodo-puente:5001
+    ports:
+      - "7001:5001"
+      - "7002:5002/udp"
+      - "7003:5003"
+      - "7004:5004/udp"
+    volumes:
+      - datos-nodo3:/app/data
+    networks:
+      - red-sur
+    restart: unless-stopped
+
+  nodo4:
+    build: .
+    container_name: nodo4
+    environment:
+      - NODE_NAME=nodo4
+      - TCP_PORT=5001
+      - UDP_PORT=5002
+      - API_PORT=5003
+      - HB_PORT=5004
+      - PEERS=nodo3:5001,nodo-puente:5001
+    ports:
+      - "8001:5001"
+      - "8002:5002/udp"
+      - "8003:5003"
+      - "8004:5004/udp"
+    volumes:
+      - datos-nodo4:/app/data
+    networks:
+      - red-sur
+    restart: unless-stopped
+
+  # nodo-puente: conectado a AMBAS redes
+  nodo-puente:
+    build: .
+    container_name: nodo-puente
+    environment:
+      - NODE_NAME=nodo-puente
+      - TCP_PORT=5001
+      - UDP_PORT=5002
+      - API_PORT=5003
+      - HB_PORT=5004
+      - PEERS=nodo1:5001,nodo2:5001,nodo3:5001,nodo4:5001
+    ports:
+      - "9001:5001"
+      - "9002:5002/udp"
+      - "9003:5003"
+      - "9004:5004/udp"
+    volumes:
+      - datos-puente:/app/data
+    networks:
+      - red-norte
+      - red-sur
+    restart: unless-stopped
+
+volumes:
+  datos-nodo1:
+  datos-nodo2:
+  datos-nodo3:
+  datos-nodo4:
+  datos-puente:
+
+networks:
+  red-norte:
+    driver: bridge
+  red-sur:
+    driver: bridge

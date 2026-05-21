@@ -1,0 +1,84 @@
+services:
+
+  # ── Nodo 1 ─────────────────────────────────────────────────────────────────
+  nodo1:
+    build: .
+    container_name: nodo1
+    environment:
+      - NODE_NAME=nodo1
+      - TCP_PORT=5001
+      - UDP_PORT=5002
+      - API_PORT=5003
+      - HB_PORT=5004
+      # TODO 6: PEERS permite que nodo1 conozca a sus vecinos automáticamente.
+      # Docker DNS resuelve "nodo2" y "nodo3" a las IPs internas de esos contenedores.
+      - PEERS=nodo2:5001,nodo3:5001
+    ports:
+      - "5001:5001"       # TCP mensajes   (host → contenedor)
+      - "5002:5002/udp"   # UDP mensajes
+      - "5003:5003"       # API / Dashboard
+      - "5004:5004/udp"   # Heartbeat UDP
+    volumes:
+      - datos-nodo1:/app/data   # persistencia de mensajes.db
+    networks:
+      - mensajeria-net
+    restart: unless-stopped
+
+  # ── Nodo 2 ─────────────────────────────────────────────────────────────────
+  nodo2:
+    build: .
+    container_name: nodo2
+    environment:
+      - NODE_NAME=nodo2
+      - TCP_PORT=5001
+      - UDP_PORT=5002
+      - API_PORT=5003
+      - HB_PORT=5004
+      # TODO 6 (cont.): peers de nodo2
+      - PEERS=nodo1:5001,nodo3:5001
+    ports:
+      - "6001:5001"
+      - "6002:5002/udp"
+      - "6003:5003"
+      - "6004:5004/udp"
+    volumes:
+      - datos-nodo2:/app/data
+    networks:
+      - mensajeria-net
+    restart: unless-stopped
+
+  # ── Nodo 3 ─────────────────────────────────────────────────────────────────
+  nodo3:
+    build: .
+    container_name: nodo3
+    environment:
+      - NODE_NAME=nodo3
+      - TCP_PORT=5001
+      - UDP_PORT=5002
+      - API_PORT=5003
+      - HB_PORT=5004
+      # TODO 6 (cont.): peers de nodo3
+      - PEERS=nodo1:5001,nodo2:5001
+    ports:
+      - "7001:5001"
+      - "7002:5002/udp"
+      - "7003:5003"
+      - "7004:5004/udp"
+    volumes:
+      - datos-nodo3:/app/data
+    networks:
+      - mensajeria-net
+    restart: unless-stopped
+
+# ── Volúmenes nombrados ────────────────────────────────────────────────────────
+# Los datos de mensajes.db sobreviven a "docker compose down" (no a "down -v")
+volumes:
+  datos-nodo1:
+  datos-nodo2:
+  datos-nodo3:
+
+# ── Redes ──────────────────────────────────────────────────────────────────────
+# Red única para los 3 nodos. Docker resuelve "nodo1", "nodo2", "nodo3" por DNS.
+networks:
+  mensajeria-net:
+    driver: bridge
