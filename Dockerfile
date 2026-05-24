@@ -29,10 +29,14 @@ RUN mkdir -p /app/data
 
 # Declarar los puertos que usa la aplicación.
 # EXPOSE es solo documentación; los puertos se publican con -p o en Compose.
-EXPOSE 5001          # TCP mensajes
-EXPOSE 5002/udp      # UDP mensajes
-EXPOSE 5003          # API REST y Dashboard
-EXPOSE 5004/udp      # Heartbeat
+# TCP mensajes
+EXPOSE 5001         
+# UDP mensajes
+EXPOSE 5002/udp      
+# API REST y Dashboard
+EXPOSE 5003          
+# Heartbeat
+EXPOSE 5004/udp      
 
 # Variables de entorno con valores por defecto.
 # Pueden sobreescribirse desde docker-compose.yml o con -e en docker run.
