@@ -3,32 +3,27 @@
 # Taller de Sistemas Distribuidos - UIS 2026-1
 # ============================================================
 
-# Usamos Python 3.12 sobre Debian Slim (imagen liviana, sin Alpine
-# para evitar problemas de compatibilidad con algunas librerías C).
+# Usamos Python 3.12 sobre Debian Slim
+# para evitar problemas de compatibilidad con algunas librerías)
 FROM python:3.12-slim
 
-# Directorio de trabajo dentro del contenedor.
-# Todos los comandos siguientes se ejecutan desde /app.
+# Directorio de trabajo dentro del contenedor
+# estos comandos se ejecutan desde /app
 WORKDIR /app
 
-# Copiamos requirements.txt ANTES que el resto del código.
-# Ventaja: Docker cachea esta capa. Si solo cambia el código Python
-# (no las dependencias), el "pip install" no se vuelve a ejecutar
+# Copiamos requirements.txt antes que el resto del código
+# para que el Docker cachea esta capa. Si solo cambia el código Python, el "pip install" no se vuelve a ejecutar
 # en el siguiente "docker build", lo que ahorra tiempo.
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar el código fuente al contenedor.
+# para copiar el código fuente al contenedor:
 COPY . .
 
-# Crear el directorio de datos para SQLite.
-# Este directorio es el punto de montaje del volumen en docker-compose.yml.
-# Si no hay volumen, los datos se guardan aquí dentro del contenedor
-# (se pierden al borrarlo).
+# Creamos el directorio de datos para SQLite
 RUN mkdir -p /app/data
 
-# Declarar los puertos que usa la aplicación.
-# EXPOSE es solo documentación; los puertos se publican con -p o en Compose.
+# Declarar¿mos los puertos que usa la aplicación
 # TCP mensajes
 EXPOSE 5001         
 # UDP mensajes
@@ -39,7 +34,6 @@ EXPOSE 5003
 EXPOSE 5004/udp      
 
 # Variables de entorno con valores por defecto.
-# Pueden sobreescribirse desde docker-compose.yml o con -e en docker run.
 ENV NODE_NAME=nodo1
 ENV TCP_PORT=5001
 ENV UDP_PORT=5002
